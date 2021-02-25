@@ -2,14 +2,12 @@
 using kitchencli.utils;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace kitchencli
 {
-    class CreatedOrderConsumer
+    class CreatedOrderConsumer : IStartStoppableModule
     {
         private Queue<Order> _ordersQueue;
         private readonly object _lock = new object();
@@ -21,10 +19,6 @@ namespace kitchencli
             _orderReceiver = orderReceiver;
             cts = new CancellationTokenSource();
             _ordersQueue = new Queue<Order>();
-            Task.Run(() =>
-            {
-                ProcessOrders(cts.Token);
-            });
         }
         
         public void AddOrderToQueue(Order order) 
@@ -54,35 +48,39 @@ namespace kitchencli
             cts.Cancel();
         }
 
-        private void ProcessOrders(CancellationToken token)
+        public void Start()
+        {
+            Task.Run(() =>
+            {
+                ProcessOrders(cts.Token);
+            });
+        }
+        
+        private async void ProcessOrders(CancellationToken token)
         {
             do
             {
                 if (token.IsCancellationRequested)
                 {
-                    Console.WriteLine("Order taking process has been stopped");
+                    Console.WriteLine($"{DateTime.Now.TimeOfDay} [CreatedOrderConsumer] Order taking process has been stopped");
                     break;
                 }
 
                 // pick 2 orders/second
-                Order order = SendSingleOrder();                
-                Thread.Sleep(1000);
+                SendSingleOrder();                
+                await Task.Delay(1000, token);
 
             } while (true);            
         }
 
-        private Order SendSingleOrder()
+        private void SendSingleOrder()
         {
             var order = PickOrder();
             if (order != null)
             {
-                Console.WriteLine($"Sending Order {order.id}\t{order.name} to Kitchen");
                 _orderReceiver.SendOrderToOrderMaker(order);
-                Console.WriteLine($"Dispatching Courier for Order {order.id}\t{order.name}");
                 _orderReceiver.DispatchCourier(order);
             }
-
-            return order;
         }
     }
 }

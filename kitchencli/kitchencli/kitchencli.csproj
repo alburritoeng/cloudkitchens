@@ -22,6 +22,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32bit>false</Prefer32bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -31,6 +32,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32bit>false</Prefer32bit>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
@@ -47,10 +49,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="api\ICourierFactory.cs" />
+    <Compile Include="api\ICourierOrderTelemetry.cs" />
+    <Compile Include="api\ICourierTelemetry.cs" />
     <Compile Include="api\IFoodOrderMaker.cs" />
     <Compile Include="api\ICourierOrderMatcher.cs" />
     <Compile Include="api\IKitchen.cs" />
     <Compile Include="api\IOrderReceiver.cs" />
+    <Compile Include="api\IOrderTelemetry.cs" />
+    <Compile Include="api\IStartStoppableModule.cs" />
     <Compile Include="ArgumentParser.cs" />
     <Compile Include="Couriers\Courier.cs" />
     <Compile Include="Couriers\DoorDashCourier.cs" />
@@ -60,7 +66,7 @@
     <Compile Include="RandomCourierFactory.cs" />
     <Compile Include="CourierMatch\CourierOrderFifo.cs" />
     <Compile Include="CourierMatch\CourierOrderMatch.cs" />
-    <Compile Include="KitchenCli.cs" />
+    <Compile Include="Bootstrapper.cs" />
     <Compile Include="OrderReceiverModule.cs" />
     <Compile Include="FoodOrderMakerModule.cs" />
     <Compile Include="Program.cs" />

@@ -5,9 +5,6 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace kitchencli
 {
@@ -15,14 +12,15 @@ namespace kitchencli
     /// this is the main entry for this project, sets up all the objects
     /// also has-a producer for creating and putting orders into the system
     /// </summary>
-    class KitchenCli : IKitchen
+    class Bootstrapper : IKitchen
     {
+        internal readonly IList<object> _startStoppableObjects;
+        
+        internal IOrderReceiver _orderReceiver;
 
-        internal IOrderReceiver orderReceiver;
+        internal IFoodOrderMaker _foodOrderMaker;
 
-        internal IFoodOrderMaker foodOrderMaker;
-
-        internal ICourierFactory courierFactory;
+        internal ICourierFactory _courierFactory;
 
         internal ICourierOrderMatcher courierOrderMatcher;
 
@@ -32,9 +30,10 @@ namespace kitchencli
 
         List<Order> orders = null;
                 
-        CreatedOrderConsumer _orderConsumer;
-        public KitchenCli()
+        IStartStoppableModule _orderConsumer;
+        public Bootstrapper()
         {
+            _startStoppableObjects = new List<object>();
             orders = null;
             _jsonFile = string.Empty;
             _dispatcherCourierType = DispatchCourierMatchEnum.Unknown;            
@@ -65,33 +64,54 @@ namespace kitchencli
                 return;
             }
 
-            courierFactory = new RandomCourierFactory();
+            _courierFactory = new RandomCourierFactory();
             switch (dipatcherType)
             {
                 case DispatchCourierMatchEnum.F:
-                    courierOrderMatcher = new CourierOrderFifo();
+                    courierOrderMatcher = new CourierOrderFifo(_courierFactory, new TelemetryModule());
                     break;
                 default:
-                    courierOrderMatcher = new CourierOrderMatch();
+                    courierOrderMatcher = new CourierOrderMatch(_courierFactory, new TelemetryModule());
                     break;
             }
             
-            foodOrderMaker = new FoodOrderMakerModule(courierOrderMatcher);
-            orderReceiver = new OrderReceiverModule(foodOrderMaker, courierFactory);
-            _orderConsumer = new CreatedOrderConsumer(orderReceiver);            
+            _foodOrderMaker = new FoodOrderMakerModule(courierOrderMatcher);
+            _orderReceiver = new OrderReceiverModule(_foodOrderMaker, _courierFactory, courierOrderMatcher);
+            _orderConsumer = new CreatedOrderConsumer(_orderReceiver);
+            
+            if (_foodOrderMaker is IStartStoppableModule)
+            {
+                _startStoppableObjects.Add(_foodOrderMaker);
+            }
+            if (_orderReceiver is IStartStoppableModule)
+            {
+                _startStoppableObjects.Add(_orderReceiver);
+            }
+            
+            _startStoppableObjects.Add(_orderConsumer);
         }
 
         public void Start()
         {
+            foreach (IStartStoppableModule startableObject in _startStoppableObjects)
+            {
+                startableObject.Start();
+            }
+            
+            // consume the json file
             foreach (Order order in orders)
             {
-                _orderConsumer.AddOrderToQueue(order);
+                ((CreatedOrderConsumer)_orderConsumer).AddOrderToQueue(order);
             }
         }
 
         public void Stop()
         {
             _orderConsumer.Stop();
+            foreach (IStartStoppableModule stoppableObject in _startStoppableObjects)
+            {
+                stoppableObject.Stop();
+            }
         }
     }
 }

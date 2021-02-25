@@ -1,9 +1,4 @@
 ﻿using kitchencli.utils;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace kitchencli.api
 {
@@ -14,8 +9,10 @@ namespace kitchencli.api
     /// 
     /// IWO this interface is to manage the order's life cycle after it is received from the cli/json/order-originator
     /// </summary>
-    interface IFoodOrderMaker
+    public interface IFoodOrderMaker
     {
         void PrepareOrder(Order order);
+
+        void CourierHasArrived(ICourier courier);
     }
 }

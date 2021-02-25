@@ -1,8 +1,6 @@
 ﻿using kitchencli.api;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace kitchencli
@@ -19,12 +17,13 @@ namespace kitchencli
         static void Main(string[] args)
         {
             // parse the arguments
-            KitchenCli cli = null;
+            Bootstrapper bootstrapper = null;
             IDictionary<string, string> arguments = new Dictionary<string, string>();
             ArgResultEnum result = ArgumentParser.ParseAguments(args, ref arguments);
             if(result == ArgResultEnum.Error)
             {
                 Console.WriteLine($"{ArgumentParser.HelperString}");
+                return;
             }
             else
             {
@@ -34,14 +33,17 @@ namespace kitchencli
                 }
                 Task.Run(() =>
                 {
-                    cli = new KitchenCli();
-                    cli.Initialize(arguments["f"], (DispatchCourierMatchEnum)Enum.Parse(typeof(DispatchCourierMatchEnum), arguments["c"], true));
-                    cli.Start();
+                    bootstrapper = new Bootstrapper();
+                    bootstrapper.Initialize(arguments["f"], (DispatchCourierMatchEnum)Enum.Parse(typeof(DispatchCourierMatchEnum), arguments["c"], true));
+                    bootstrapper.Start();
                 });
             }
 
             Console.Read();
-            cli?.Stop();
+            
+            bootstrapper?.Stop();
+            
+            
         }
     }
 }

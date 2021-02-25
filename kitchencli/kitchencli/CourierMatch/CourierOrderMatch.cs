@@ -2,9 +2,6 @@
 using kitchencli.utils;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace kitchencli.CourierMatch
 {
@@ -15,34 +12,99 @@ namespace kitchencli.CourierMatch
     /// </summary>
     internal class CourierOrderMatch : ICourierOrderMatcher
     {
-        //public event Action<ICourier> CourierArrived;
-        //public event Action<Order> OrderReady;
-
-        public CourierOrderMatch()
+        private readonly ICourierFactory _courierFactory;
+        private readonly IDictionary<Guid, Tuple<Order, ICourier>> _matchingSet;
+        private readonly object _lock = new object();
+        private ICourierOrderTelemetry _telemetry;
+        public CourierOrderMatch(ICourierFactory courierFactory, ICourierOrderTelemetry courierOrderTelemetry)
         {
-            //CourierArrived += CourierOrderMatch_CourierArrived;
-
-            //OrderReady += CourierOrderMatch_OrderReady;
+            _courierFactory = courierFactory;
+            _telemetry = courierOrderTelemetry;
+            _matchingSet = new Dictionary<Guid, Tuple<Order, ICourier>>();
         }
 
-        private void CourierOrderMatch_OrderReady(Order order)
+        private bool Match(ICourier courier)
         {
-            Console.WriteLine($"Order Ready {order.id}\t{order.name}");
+            lock (_lock)
+            {
+                if (_matchingSet.ContainsKey(courier.OrderId()))
+                {
+                    PickupOrder(_matchingSet[courier.OrderId()].Item1, courier);
+                    _matchingSet.Remove(courier.OrderId());
+                    return true;
+                }
+
+                _matchingSet.Add(courier.OrderId(), new Tuple<Order, ICourier>(null, courier));
+                return false;
+            }
         }
 
-        private void CourierOrderMatch_CourierArrived(ICourier courier)
+        private bool Match(Order order)
         {
-            Console.WriteLine($"Courier has arrived {courier.GetType()} for order {courier.OrderId()}");
+            lock (_lock)
+            {
+                Guid orderGuid;
+                if (!Guid.TryParse(order.id, out orderGuid))
+                {
+                    return false;
+                }
+                if (_matchingSet.ContainsKey(orderGuid))
+                {
+                    PickupOrder(order,_matchingSet[orderGuid].Item2);
+                    _matchingSet.Remove(orderGuid);
+                    return true;
+                }
+
+                _matchingSet.Add(orderGuid, new Tuple<Order, ICourier>(order, null));
+                return false;
+
+            }
         }
 
+        private void PickupOrder(Order order, ICourier courier)
+        {
+            // we have an entry for this OrderId, perhaps the order reached this point before courier
+            // match them, deem the order delivered, and send the courier back to the Courier Factory
+            Console.WriteLine($"{DateTime.Now.TimeOfDay} [CourierOrderMatch] Order {courier.OrderId()} picked up/delivered by Courier!");
+
+            DateTime now = DateTime.Now;
+            ((IOrderTelemetry) order).OrderPickUpTime = now;
+            _telemetry.CalculateAverageFoodWaitTime(order);
+
+            ((ICourierTelemetry) courier).OrderPickupTime = now;
+            _telemetry.CalculateAverageCourierWaitTime(courier);
+            
+            _courierFactory.ReturnCourier(courier);
+        }
+        
         public void AddToOrderReadyQueue(Order order)
         {
-            throw new NotImplementedException();
+            Console.WriteLine($"{DateTime.Now.TimeOfDay} [CourierOrderMatch] received ready order {order.id}-{order.name}");
+            
+            ((IOrderTelemetry)order).OrderReadyTime = DateTime.Now;
+            
+            var res = Match(order);
+            if (res == false)
+            {
+                Console.WriteLine($"{DateTime.Now.TimeOfDay} [CourierOrderMach] Courier has not arrived for order {order.id}");
+            }
         }
 
         public void CourierArrived(ICourier courier)
         {
-            throw new NotImplementedException();
+            Console.WriteLine($"{DateTime.Now.TimeOfDay} [CourierOrderMatch] Courier {courier.CourierUniqueId} has arrived for order");
+            courier.ArrivalTime = DateTime.Now;
+            
+            var res = Match(courier);
+            if (res == false)
+            {
+                Console.WriteLine($"{DateTime.Now.TimeOfDay} [CourierOrderMatch] Order {courier.OrderId()} not ready for Courier {courier.CourierUniqueId}");
+            }
+        }
+        
+        public MatchType GetMatchType()
+        {
+            return MatchType.Match;
         }
     }
 }

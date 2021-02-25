@@ -1,9 +1,5 @@
 ﻿using kitchencli.utils;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace kitchencli.api
 {
@@ -12,9 +8,11 @@ namespace kitchencli.api
     /// It will have a property for order Id
     /// It will have a property for created time    
     /// </summary>
-    public interface ICourier
+    public interface ICourier: ICourierTelemetry
     {
-        
+        Action<ICourier> NotifyArrivedForOrder { get; set; }
+
+        Order CurrentOrder { get; set; }
         /// <summary>
         /// returns the type of courier, for example ubereats, doordash, uncle-pete's fast food deliver svc
         /// </summary>
@@ -22,11 +20,10 @@ namespace kitchencli.api
         string CourierType();
 
         /// <summary>
-        /// Describes when this courier was created, for telemetry purposes - perhaps 
-        /// we can use this to tell us how long a courier has been in service. The current idea
-        /// is to re-use couriers after they have made their delivery
+        /// returns int, should be an enum...if theres time, of courier
         /// </summary>
-        DateTime CreatedTime();
+        /// <returns></returns>
+        int CourierTypeInt();
 
         /// <summary>
         /// The IOrderReadyPass object will assign the order and set this Id. 
@@ -42,8 +39,14 @@ namespace kitchencli.api
         int DurationEstimateInSeconds();
 
         /// <summary>
-        /// the order handed to the courier during pickup
+        /// This method is intended to start the internal timer that will run for DurationEstimate
+        /// and once that elapses, it will call the FoodOrdeMaker to indicate "I've arrived for the order"
         /// </summary>
-        Order OrderToDeliver();
+        void LeaveForFood();
+
+        /// <summary>
+        /// an Id to uniquely identify this Courier
+        /// </summary>
+        Guid CourierUniqueId { get; }
     }
 }

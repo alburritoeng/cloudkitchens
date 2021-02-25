@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using kitchencli.api;
 
 namespace kitchencli.utils
 {
@@ -11,14 +10,15 @@ namespace kitchencli.utils
     /// Input is in JSON, internally we will use C# objects to describe the JSON.
     /// Those C# objects will be the way we pass orders around internally through the workflow    
     /// </summary>
-    public class Order
+    public class Order: IOrderTelemetry
     {
+        public Action<Order> OrderReadyNotification;
+        
         public Order()
         {
             id = Guid.NewGuid().ToString();
             prepTime = -1;
             name = string.Empty;
-            CreatedTime = DateTime.Now;
         }
         /// <summary>
         /// The id of the Order
@@ -35,7 +35,25 @@ namespace kitchencli.utils
         /// </summary>
         public int prepTime { get; set; }
 
-        public DateTime CreatedTime { get; private set; }
+        public void StartOrder()
+        {
+            Task.Run(() =>
+            {
+                using (ManualResetEvent evt = new ManualResetEvent(false))
+                {
+                    evt.WaitOne(prepTime * 1000);
+
+                    if (OrderReadyNotification != null)
+                    {
+                        OrderReadyNotification(this);
+                    }
+
+                }
+            });
+        }
+
+        public DateTime OrderReadyTime { get; set; }
+        public DateTime OrderPickUpTime { get; set; }
     }   
     
 }

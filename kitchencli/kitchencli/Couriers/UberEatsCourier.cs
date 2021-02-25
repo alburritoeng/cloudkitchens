@@ -1,10 +1,4 @@
-﻿using kitchencli.api;
-using kitchencli.utils;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using kitchencli.utils;
 
 namespace kitchencli.Couriers
 {
@@ -12,13 +6,17 @@ namespace kitchencli.Couriers
     {                
         public UberEatsCourier(Order order)
         {
-            _currentOrder = order;            
+            CurrentOrder = order;
         }
 
         public override string CourierType()
         {
             return "UberEats";
         }
-        
+
+        public override int CourierTypeInt()
+        {
+            return 1;
+        }
     }
 }

@@ -1,47 +1,41 @@
 ﻿using kitchencli.api;
 using kitchencli.utils;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace kitchencli.Couriers
 {
     abstract class Courier : ICourier
     {
-        protected int _durationEstimate = -1;
-        protected Order _currentOrder;
+        private readonly int _durationEstimate;
+        //protected Order _currentOrder;
         public Courier()
         {
             _durationEstimate = RandomDistributionGenerator.GetRandomDistribution();
+            CourierUniqueId = Guid.NewGuid();
         }
 
+        private Order _c;
         public Order CurrentOrder
         {
-            get
+            get { return _c;}
+            set
             {
-                return _currentOrder;
-            }
-            private set
-            {
-                _currentOrder = value;
+                _c = value;
             }
         }
+        
+        public Action<ICourier> NotifyArrivedForOrder { get; set; }
 
         public virtual string CourierType()
         {
             throw new NotImplementedException();
         }
 
-        public virtual DateTime CreatedTime()
+        public virtual int CourierTypeInt()
         {
-            if (CurrentOrder == null)
-            {
-                return DateTime.MinValue;
-            }
-
-            return CurrentOrder.CreatedTime;
+            return 0;
         }
 
         public virtual int DurationEstimateInSeconds()
@@ -63,9 +57,21 @@ namespace kitchencli.Couriers
             return Guid.Empty;
         }
 
-        public Order OrderToDeliver()
+        public void LeaveForFood()
         {
-            return CurrentOrder;
+            Task.Run(() =>
+            {
+                using (ManualResetEvent evt = new ManualResetEvent(false))
+                {
+                    evt.WaitOne(_durationEstimate * 1000);
+
+                    NotifyArrivedForOrder?.Invoke(this);
+                }
+            });
         }
+
+        public Guid CourierUniqueId { get; set; }
+        public DateTime ArrivalTime { get; set; }
+        public DateTime OrderPickupTime { get; set; }
     }
 }

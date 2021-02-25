@@ -1,12 +1,12 @@
 ﻿using kitchencli.utils;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace kitchencli.api
 {
+    public enum MatchType
+    {
+        Match,
+        Fifo
+    }
     /// <summary>
     /// This interface receives Orders and handles logic for 
     /// Couriers picking up orders
@@ -19,5 +19,7 @@ namespace kitchencli.api
         void AddToOrderReadyQueue(Order order);
 
         void CourierArrived(ICourier courier);
+
+        MatchType GetMatchType();
     }
 }
