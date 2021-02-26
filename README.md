@@ -292,6 +292,7 @@ public interface IOrderTelemetry
     /// </summary>
     DateTime OrderPickUpTime { get; set; }
 }
+```
 
 ### IStartStoppableModule interface
 Allows an object to implement this interface and be controlled as an abstract object rather than concrete object.
@@ -314,6 +315,7 @@ public interface IStartStoppableModule
     void Stop();
 }
 ```
+# Objects in the System & Design
 
 ## Orders
 The way I designed Order objects was to make them self-expiring on their prep time
@@ -365,6 +367,7 @@ I like Polymorphism, I'm a fan of using base objects. I think I succeeded with t
 ## Unit Test
 I tried to unit test as much of my API as possible. I hope that it is an seen as a **negative**, but I tend to use the encapsulation value "internal" on some
 properties here and there for the purpose of controlling state within a unit test. I do this by setting the following in the AssemblyInfo.cs file for the project
+
 ```
 [assembly: InternalsVisibleTo("unittests")]
 ```
