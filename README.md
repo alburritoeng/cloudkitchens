@@ -6,7 +6,11 @@ The IDE I used is Jetbrains Rider 2020.3.3, but I also verified this ran against
 The application is using .NET472 framework. 
 
 ## Sequence Diagram of Solution
-![Alt text](kitchencli/workflow/seqdiag.png?raw=true "Title")
+![Alt text](kitchencli/workflow/seqdiag.png?raw=true "Sequence Diagram")
+
+## Whiteboarding session
+I wanted to show what I did once I read the prompt. I immediately took to my white board. 
+![Alt text](kitchencli/workflow/whiteboarding.jpg?raw=true "Whiteboarding the solution")
 
 ## Cli Usage
     Usage:
