@@ -2,6 +2,9 @@
 
 namespace kitchencli.api
 {
+    /// <summary>
+    /// interface for adding telemetry logic to an order
+    /// </summary>
     public interface IOrderTelemetry
     {
         /// <summary>

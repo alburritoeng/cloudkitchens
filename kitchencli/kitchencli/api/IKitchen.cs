@@ -11,8 +11,17 @@ namespace kitchencli.api
     /// </summary>
     public interface IKitchen
     {
+        /// <summary>
+        /// Kitchen receives an order and uses preptime as indicator for how long it takes to prepare an order
+        /// after which, order is deemed ready for pickup
+        /// </summary>
+        /// <param name="order"></param>
         void PrepareOrder(Order order);
 
+        /// <summary>
+        /// The Kitchen (establishment preparing the food) has a courier arrive and pick up an order
+        /// </summary>
+        /// <param name="courier"></param>
         void CourierHasArrived(ICourier courier);
     }
 }

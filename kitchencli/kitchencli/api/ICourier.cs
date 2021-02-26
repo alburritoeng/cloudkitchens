@@ -49,6 +49,10 @@ namespace kitchencli.api
         /// </summary>
         Guid CourierUniqueId { get; }
 
+        /// <summary>
+        /// To be called when returning to a CourierPool so that the next time this courier is used, it has
+        /// a different Duration Time
+        /// </summary>
         void RecalcDuration();
     }
 }

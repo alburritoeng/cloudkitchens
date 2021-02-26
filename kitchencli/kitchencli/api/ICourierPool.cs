@@ -11,8 +11,16 @@ namespace kitchencli.api
     /// </summary>
     public interface ICourierPool
     {
+        /// <summary>
+        /// returns an instance of ICourier
+        /// </summary>
+        /// <returns></returns>
         ICourier GetCourier();
 
+        /// <summary>
+        /// an instance of ICourier is returned to the Courier Object Pool
+        /// </summary>
+        /// <param name="courier"></param>
         void ReturnCourier(ICourier courier);
     }
 }
