@@ -14,21 +14,21 @@ namespace kitchencli
     /// A courier is dispatched for the order
     /// An Order object is dispatched to the IFoodOrderStatusManager object
     /// </summary>
-    internal class OrderReceiverModule : IOrderReceiver, IStartStoppableModule
+    internal class OrderReceiverModule : IOrderReceiver, IStartStoppableModule, IDisposable
     {
-        IFoodOrderMaker _foodOrderMaker;
-        ICourierFactory _courierFactory;
+        IKitchen _kitchen;
+        ICourierPool _courierPool;
         private ICourierOrderMatcher _courierOrderMatcher;
-        private Queue<Order> _receivedOrdersQueue;
+        internal Queue<Order> _receivedOrdersQueue;
         private Queue<Order> _courierQueue;
         private readonly object _ordersLock = new object();
         private readonly object _courierLock = new object();
-        private CancellationTokenSource cts;
-        
-        public OrderReceiverModule(IFoodOrderMaker foodOrderMaker, ICourierFactory courierFactory, ICourierOrderMatcher courierOrderMatcher)
+        internal CancellationTokenSource cts;
+        private bool _disposed;
+        public OrderReceiverModule(IKitchen kitchen, ICourierPool courierPool, ICourierOrderMatcher courierOrderMatcher)
         {
-            _foodOrderMaker = foodOrderMaker;
-            _courierFactory = courierFactory;
+            _kitchen = kitchen;
+            _courierPool = courierPool;
             _courierOrderMatcher = courierOrderMatcher;
             _receivedOrdersQueue = new Queue<Order>();
             _courierQueue = new Queue<Order>();
@@ -73,10 +73,23 @@ namespace kitchencli
                 if (order != null)
                 {
                     Console.WriteLine($"{DateTime.Now.TimeOfDay} [OrderReceiverModule] Sending order {order.id}-{order.name} to OrderMaker");
-                    _foodOrderMaker.PrepareOrder(order);
+                    _kitchen.PrepareOrder(order);
                 }
-            
-                await Task.Delay(100, token);
+
+                try
+                {
+                    await Task.Delay(100, token);
+                }
+                catch (OperationCanceledException) when (token.IsCancellationRequested)
+                {
+                    //task is cancelled, return or do something else
+                    break;
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                    throw;
+                }
 
             } while (true);
         }
@@ -102,7 +115,7 @@ namespace kitchencli
 
                 if (order != null)
                 {
-                    ICourier courier = _courierFactory.CreateCourier(order);
+                    ICourier courier = _courierPool.GetCourier();
 
                     if (courier != null)
                     {
@@ -118,12 +131,25 @@ namespace kitchencli
 
                         Console.WriteLine(
                             $"{DateTime.Now.TimeOfDay} [OrderReceiverModule] Courier from {courier.CourierType()} {courier.CourierUniqueId} on the way for order {courier.CurrentOrder?.id}, ETA {courier.DurationEstimateInSeconds()}");
-                        courier.NotifyArrivedForOrder += _foodOrderMaker.CourierHasArrived;
+                        courier.NotifyArrivedForOrder += _kitchen.CourierHasArrived;
                         courier.LeaveForFood();
                     }
                 }
 
-                await Task.Delay(100, token);
+                try
+                {
+                    await Task.Delay(100, token);
+                }
+                catch (OperationCanceledException) when (token.IsCancellationRequested)
+                {
+                    //task is cancelled, return or do something else
+                    break;
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                    throw;
+                }
 
             } while (true);
         }
@@ -145,6 +171,26 @@ namespace kitchencli
         public void Stop()
         {
             cts.Cancel();
+        }
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+        
+        // Protected implementation of Dispose pattern.
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            if (disposing)
+            {
+                cts?.Dispose();
+            }
+
+            _disposed = true;
         }
     }
 }

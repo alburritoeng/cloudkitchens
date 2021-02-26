@@ -1,6 +1,7 @@
 ﻿using kitchencli.api;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace kitchencli
@@ -18,6 +19,7 @@ namespace kitchencli
         {
             // parse the arguments
             Bootstrapper bootstrapper = null;
+            ManualResetEvent evt = new ManualResetEvent(false);
             IDictionary<string, string> arguments = new Dictionary<string, string>();
             ArgResultEnum result = ArgumentParser.ParseAguments(args, ref arguments);
             if(result == ArgResultEnum.Error)
@@ -25,25 +27,25 @@ namespace kitchencli
                 Console.WriteLine($"{ArgumentParser.HelperString}");
                 return;
             }
-            else
-            {
-                foreach(var a in arguments)
-                {
-                    Console.WriteLine($"{a}");
-                }
-                Task.Run(() =>
-                {
-                    bootstrapper = new Bootstrapper();
-                    bootstrapper.Initialize(arguments["f"], (DispatchCourierMatchEnum)Enum.Parse(typeof(DispatchCourierMatchEnum), arguments["c"], true));
-                    bootstrapper.Start();
-                });
-            }
 
-            Console.Read();
+            foreach(var a in arguments)
+            {
+                Console.WriteLine($"{a}");
+            }
+            DateTime startTime = DateTime.Now;
             
-            bootstrapper?.Stop();
+            Task.Run(() =>
+            {
+                bootstrapper = new Bootstrapper(evt);
+                bootstrapper.Initialize(arguments["f"], (DispatchCourierMatchEnum)Enum.Parse(typeof(DispatchCourierMatchEnum), arguments["c"], true));
+                bootstrapper.Start();
+            });
+
+            evt.WaitOne();
             
-            
+            evt?.Dispose();
+            Console.WriteLine(($"Total Time: {DateTime.Now.Subtract(startTime).TotalMinutes} minutes"));
+            Console.WriteLine("Exit");
         }
     }
 }

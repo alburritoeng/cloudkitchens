@@ -5,6 +5,8 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace kitchencli
 {
@@ -12,15 +14,15 @@ namespace kitchencli
     /// this is the main entry for this project, sets up all the objects
     /// also has-a producer for creating and putting orders into the system
     /// </summary>
-    class Bootstrapper : IKitchen
+    class Bootstrapper : IKitchenCli
     {
-        internal readonly IList<object> _startStoppableObjects;
+        internal readonly IList<object> _modules;
         
         internal IOrderReceiver _orderReceiver;
 
-        internal IFoodOrderMaker _foodOrderMaker;
+        internal IKitchen kitchen;
 
-        internal ICourierFactory _courierFactory;
+        internal ICourierPool CourierPool;
 
         internal ICourierOrderMatcher courierOrderMatcher;
 
@@ -31,9 +33,14 @@ namespace kitchencli
         List<Order> orders = null;
                 
         IStartStoppableModule _orderConsumer;
-        public Bootstrapper()
+
+        private int _totalOrders;
+        private object _lock = new object();
+        private ManualResetEvent _evt;
+        public Bootstrapper(ManualResetEvent evt)
         {
-            _startStoppableObjects = new List<object>();
+            _evt = evt;
+            _modules = new List<object>();
             orders = null;
             _jsonFile = string.Empty;
             _dispatcherCourierType = DispatchCourierMatchEnum.Unknown;            
@@ -64,38 +71,59 @@ namespace kitchencli
                 return;
             }
 
-            _courierFactory = new RandomCourierFactory();
+            _totalOrders = orders.Count;
+            OrderDeliveredPublisher.Subscribe(OrderedDelivered);
+            CourierPool = new CourierPool();
             switch (dipatcherType)
             {
                 case DispatchCourierMatchEnum.F:
-                    courierOrderMatcher = new CourierOrderFifo(_courierFactory, new TelemetryModule());
+                    courierOrderMatcher = new CourierOrderFifo(CourierPool, new TelemetryModule());
                     break;
                 default:
-                    courierOrderMatcher = new CourierOrderMatch(_courierFactory, new TelemetryModule());
+                    courierOrderMatcher = new CourierOrderMatch(CourierPool, new TelemetryModule());
                     break;
             }
             
-            _foodOrderMaker = new FoodOrderMakerModule(courierOrderMatcher);
-            _orderReceiver = new OrderReceiverModule(_foodOrderMaker, _courierFactory, courierOrderMatcher);
+            kitchen = new KitchenModule(courierOrderMatcher);
+            _orderReceiver = new OrderReceiverModule(kitchen, CourierPool, courierOrderMatcher);
             _orderConsumer = new CreatedOrderConsumer(_orderReceiver);
-            
-            if (_foodOrderMaker is IStartStoppableModule)
-            {
-                _startStoppableObjects.Add(_foodOrderMaker);
-            }
-            if (_orderReceiver is IStartStoppableModule)
-            {
-                _startStoppableObjects.Add(_orderReceiver);
-            }
-            
-            _startStoppableObjects.Add(_orderConsumer);
+           
+            _modules.Add(_orderReceiver);
+            _modules.Add(kitchen);
+            _modules.Add(CourierPool);
+            _modules.Add(courierOrderMatcher);
+            _modules.Add(_orderConsumer);
         }
 
+        private async void OrderedDelivered(string orderId)
+        {
+            bool exit = false;
+            lock (_lock)
+            {
+                _totalOrders--;
+                if (_totalOrders == 0)
+                {
+                    exit = true;
+                }
+            }
+
+            if (!exit)
+            {
+                return;
+            }
+            
+            await Task.Delay(1000);
+            Console.WriteLine($"All ordered delivered!");
+            Stop();
+        }
         public void Start()
         {
-            foreach (IStartStoppableModule startableObject in _startStoppableObjects)
+            foreach (object module in _modules)
             {
-                startableObject.Start();
+                if (module is IStartStoppableModule)
+                {
+                    ((IStartStoppableModule)module).Start();
+                }
             }
             
             // consume the json file
@@ -107,11 +135,20 @@ namespace kitchencli
 
         public void Stop()
         {
-            _orderConsumer.Stop();
-            foreach (IStartStoppableModule stoppableObject in _startStoppableObjects)
+            foreach (object module in _modules)
             {
-                stoppableObject.Stop();
+                if (module is IStartStoppableModule)
+                {
+                    ((IStartStoppableModule)module).Stop();
+                }
+
+                if (module is IDisposable)
+                {
+                    ((IDisposable)module).Dispose();
+                }
             }
+
+            _evt.Set();
         }
     }
 }

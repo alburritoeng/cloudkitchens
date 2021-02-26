@@ -47,7 +47,6 @@ namespace kitchencli.utils
                     {
                         OrderReadyNotification(this);
                     }
-
                 }
             });
         }

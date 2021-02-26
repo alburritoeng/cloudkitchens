@@ -3,10 +3,10 @@
 namespace kitchencli.Couriers
 {
     internal class UberEatsCourier : Courier
-    {                
-        public UberEatsCourier(Order order)
+    {
+        public UberEatsCourier()
         {
-            CurrentOrder = order;
+            
         }
 
         public override string CourierType()

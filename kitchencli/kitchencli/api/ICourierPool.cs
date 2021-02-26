@@ -9,9 +9,9 @@ namespace kitchencli.api
     /// 
     /// Implementations would create an Object of type ICourier
     /// </summary>
-    public interface ICourierFactory
+    public interface ICourierPool
     {
-        ICourier CreateCourier(Order order);
+        ICourier GetCourier();
 
         void ReturnCourier(ICourier courier);
     }

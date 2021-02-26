@@ -8,7 +8,7 @@ namespace kitchencli.Couriers
 {
     abstract class Courier : ICourier
     {
-        private readonly int _durationEstimate;
+        internal int _durationEstimate;
         //protected Order _currentOrder;
         public Courier()
         {
@@ -71,6 +71,11 @@ namespace kitchencli.Couriers
         }
 
         public Guid CourierUniqueId { get; set; }
+        public void RecalcDuration()
+        {
+            _durationEstimate = RandomDistributionGenerator.GetRandomDistribution();
+        }
+
         public DateTime ArrivalTime { get; set; }
         public DateTime OrderPickupTime { get; set; }
     }

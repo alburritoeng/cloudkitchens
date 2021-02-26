@@ -48,5 +48,7 @@ namespace kitchencli.api
         /// an Id to uniquely identify this Courier
         /// </summary>
         Guid CourierUniqueId { get; }
+
+        void RecalcDuration();
     }
 }

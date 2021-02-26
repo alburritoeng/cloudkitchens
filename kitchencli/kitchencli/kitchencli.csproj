@@ -48,12 +48,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="api\ICourierFactory.cs" />
+    <Compile Include="api\ICourierPool.cs" />
     <Compile Include="api\ICourierOrderTelemetry.cs" />
     <Compile Include="api\ICourierTelemetry.cs" />
-    <Compile Include="api\IFoodOrderMaker.cs" />
-    <Compile Include="api\ICourierOrderMatcher.cs" />
     <Compile Include="api\IKitchen.cs" />
+    <Compile Include="api\ICourierOrderMatcher.cs" />
+    <Compile Include="api\IKitchenCli.cs" />
     <Compile Include="api\IOrderReceiver.cs" />
     <Compile Include="api\IOrderTelemetry.cs" />
     <Compile Include="api\IStartStoppableModule.cs" />
@@ -63,17 +63,18 @@
     <Compile Include="Couriers\GrubHubCourier.cs" />
     <Compile Include="Couriers\UberEatsCourier.cs" />
     <Compile Include="CreatedOrderConsumer.cs" />
-    <Compile Include="RandomCourierFactory.cs" />
+    <Compile Include="CourierPool.cs" />
     <Compile Include="CourierMatch\CourierOrderFifo.cs" />
     <Compile Include="CourierMatch\CourierOrderMatch.cs" />
     <Compile Include="Bootstrapper.cs" />
     <Compile Include="OrderReceiverModule.cs" />
-    <Compile Include="FoodOrderMakerModule.cs" />
+    <Compile Include="KitchenModule.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="api\ICourier.cs" />
     <Compile Include="utils\LoggingModule.cs" />
     <Compile Include="utils\Order.cs" />
+    <Compile Include="utils\OrderDeliveredPublisher.cs" />
     <Compile Include="utils\OrderJsonParser.cs" />
     <Compile Include="utils\RandomDistributionGenerator.cs" />
     <Compile Include="utils\TelemetryModule.cs" />

@@ -18,7 +18,7 @@ namespace unittests
         [Test]
         public void TestDurationIsSet()
         {
-            ICourier courier = new UberEatsCourier(new Order());
+            ICourier courier = new UberEatsCourier();
             Console.WriteLine($"Courier DurationEstimate = {courier.DurationEstimateInSeconds()}");
             Assert.IsTrue(courier.DurationEstimateInSeconds() != -1);
         }

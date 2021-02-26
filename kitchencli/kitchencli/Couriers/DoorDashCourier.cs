@@ -3,10 +3,10 @@
 namespace kitchencli.Couriers
 {
     internal class DoorDashCourier : Courier
-    {       
-        public DoorDashCourier(Order order)
+    {
+        public DoorDashCourier()
         {
-            CurrentOrder = order;
+            
         }
 
         public override string CourierType()

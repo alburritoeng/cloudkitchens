@@ -13,14 +13,14 @@ namespace kitchencli.CourierMatch
     {
         private readonly object _lock = new object();
         private readonly object _courierLock = new object();
-        private readonly List<Order> _readyForPickupOrders;
-        private readonly Queue<ICourier> _idleCouriers;
-        private ICourierFactory _courierFactory;
+        internal readonly List<Order> _readyForPickupOrders;
+        internal readonly Queue<ICourier> _idleCouriers;
+        private ICourierPool _courierPool;
         private ICourierOrderTelemetry _telemetry;
         private Random random;
-        public CourierOrderFifo(ICourierFactory courierFactory, ICourierOrderTelemetry courierOrderTelemetry)
+        public CourierOrderFifo(ICourierPool courierPool, ICourierOrderTelemetry courierOrderTelemetry)
         {
-            _courierFactory = courierFactory;
+            _courierPool = courierPool;
             _telemetry = courierOrderTelemetry;
             _readyForPickupOrders = new List<Order>();
             _idleCouriers = new Queue<ICourier>();
@@ -30,6 +30,12 @@ namespace kitchencli.CourierMatch
         
         public void AddToOrderReadyQueue(Order order)
         {
+            if (order == null)
+            {
+                return;
+            }
+            // clean up our delegate
+            order.OrderReadyNotification -= this.AddToOrderReadyQueue;
             ((IOrderTelemetry)order).OrderReadyTime = DateTime.Now;
             lock (_lock)
             {
@@ -79,11 +85,18 @@ namespace kitchencli.CourierMatch
             
             Console.WriteLine($"{DateTime.Now.TimeOfDay} [CourierOrderFifo] Courier {courier.CourierUniqueId} matched with order {courier.CurrentOrder.id}");
             Console.WriteLine($"{DateTime.Now.TimeOfDay} [CourierOrderFifo] Order {courier.OrderId()} picked up/delivered by Courier!");
-            _courierFactory.ReturnCourier(courier);
+            _courierPool.ReturnCourier(courier);
+            
+            OrderDeliveredPublisher.PublishOrderDelivered(order.id);
         }
         
         public void CourierArrived(ICourier courier)
         {
+            if (courier == null)
+            {
+                return;
+            }
+            
             courier.ArrivalTime = DateTime.Now;
             Order order =  GetArbitraryOrder();
             if (order == null)

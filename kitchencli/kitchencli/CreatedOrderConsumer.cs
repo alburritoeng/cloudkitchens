@@ -7,13 +7,13 @@ using System.Threading.Tasks;
 
 namespace kitchencli
 {
-    class CreatedOrderConsumer : IStartStoppableModule
+    class CreatedOrderConsumer : IStartStoppableModule, IDisposable
     {
         private Queue<Order> _ordersQueue;
         private readonly object _lock = new object();
         private CancellationTokenSource cts;
-        private IOrderReceiver _orderReceiver;        
-        
+        private IOrderReceiver _orderReceiver;
+        private bool _disposed;
         public CreatedOrderConsumer(IOrderReceiver orderReceiver)
         {
             _orderReceiver = orderReceiver;
@@ -68,7 +68,20 @@ namespace kitchencli
 
                 // pick 2 orders/second
                 SendSingleOrder();                
-                await Task.Delay(1000, token);
+                try
+                {
+                    await Task.Delay(1000, token);
+                }
+                catch (OperationCanceledException) when (token.IsCancellationRequested)
+                {
+                    //task is cancelled, return or do something else
+                    break;
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                    throw;
+                }
 
             } while (true);            
         }
@@ -81,6 +94,27 @@ namespace kitchencli
                 _orderReceiver.SendOrderToOrderMaker(order);
                 _orderReceiver.DispatchCourier(order);
             }
+        }
+        
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+        
+        // Protected implementation of Dispose pattern.
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            if (disposing)
+            {
+                cts?.Dispose();
+            }
+
+            _disposed = true;
         }
     }
 }

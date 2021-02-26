@@ -65,10 +65,13 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CourierMatchFifo_Tests.cs" />
+    <Compile Include="CourierPoolTests.cs" />
     <Compile Include="CourierTests.cs" />
+    <Compile Include="CourierToOrderMatchTests.cs" />
+    <Compile Include="KitckenModuleTests.cs" />
+    <Compile Include="OrderReceiverModuleTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Properties\FoodOrderMakerModuleTests.cs" />
-    <Compile Include="Properties\OrderReceiverModuleTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\kitchencli\kitchencli.csproj">

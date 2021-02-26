@@ -3,10 +3,10 @@
 namespace kitchencli.Couriers
 {
     internal class GrubHubCourier : Courier
-    {        
-        public GrubHubCourier(Order order)
+    {
+        public GrubHubCourier()
         {
-            CurrentOrder = order;
+            
         }
 
         public override string CourierType()
