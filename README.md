@@ -28,6 +28,25 @@ Ctrl+C or wait until it is finished.
     Total Time: 2.97379163833333 minutes
     Exit
     
+### Console Output 
+The events displayed in the Console window should coincide with the sequence diagram. 
+There is a OrderId that is output and a Courier id that is generated for every courier and output so that a tester could potentially
+follow the order and courier path to delivery. The Order prepTime is displayed (as ETA) and the courier DurationTime is also displayed (as ETA). 
+
+The following events are displayed on the Console when the application is running:
+    
+    09:24:17.5960591 [OrderReceiverModule] Sending order a8cfcb76-7f24-4420-a5ba-d46dd77bdffd-Banana Split to OrderMaker, ETA 4
+    09:24:17.5977302 [CourierPool] Courier 6a5776e8-2939-4573-a337-b4572422b406 dispatched
+    09:24:17.5987269 [OrderReceiverModule] Dispatching Courier 6a5776e8-2939-4573-a337-b4572422b406 on the way for order a8cfcb76-7f24-4420-a5ba-d46dd77bdffd, ETA 9
+    09:24:17.7105513 [KitchenModule] Aaron Franklin is starting Order a8cfcb76-7f24-4420-a5ba-d46dd77bdffd-Banana Split ETA 4
+    09:24:26.6002689 [KitchenModule] Courier 6a5776e8-2939-4573-a337-b4572422b406 has arrived to pick up order
+    09:24:26.6002689 [CourierOrderMatch] Courier 6a5776e8-2939-4573-a337-b4572422b406 has arrived for order
+    09:24:26.6039910 [CourierOrderMatch] Order a8cfcb76-7f24-4420-a5ba-d46dd77bdffd picked up/delivered by Courier!
+    09:24:26.6089691 [TELEMETRY - FOOD] Average Order Ready to Pickup Time 4890.7751 ms
+    09:24:26.6089691 [TELEMETRY - COURIER] Average Arrival to Pickup Time 1.0377 ms
+    
+    
+#### 
 ## Api
 ### ICourier interface
 Provide an interface for defining a courier. 
@@ -396,3 +415,8 @@ I feel I should have exposed the the following through the Cli:
 I made some decisions of my own there with setting the max number of couriers, or perhaps I didn't because my object pool does allow you to create dynamic couriers if the pool is depleted, however the chefs (or producers of Orders for Matching) could probably have been a property set by the Cli. 
 
 C# - I realize C# is not a real-time language. Possibly the GCC interferes here a bit with object management and the CPU cycles invovled with cleaning up managed memory. 
+
+# Conclusion
+## Match vs Fifo
+The FIFO performed faster than the Match. The time couriers waited for orders was much lower on FIFO. See a sample output from a Release run below:
+### Match
