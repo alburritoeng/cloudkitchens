@@ -23,9 +23,12 @@ namespace kitchencli.utils
         private TimeSpan GetTimeSpanAverage(List<TimeSpan> list)
         {
             //https://docs.microsoft.com/en-us/dotnet/api/system.linq.enumerable.average?view=netframework-4.7.2
-            double dAverageTicks = list.Average(ts => ts.Ticks);
-            long lAverageTickets = Convert.ToInt64(dAverageTicks);
-            return new TimeSpan(lAverageTickets);
+            
+            IEnumerable<long> ticksPerTimeSpan = list.Select(t => t.Ticks);
+            double averageTicks = ticksPerTimeSpan.Average();
+            long averageTicksLong = Convert.ToInt64(averageTicks);
+
+            return TimeSpan.FromTicks(averageTicksLong);
         }
         
         public void CalculateAverageFoodWaitTime(IOrderTelemetry orderTelemetry)
@@ -37,7 +40,7 @@ namespace kitchencli.utils
                     TimeSpan ts = orderTelemetry.OrderPickUpTime.Subtract(orderTelemetry.OrderReadyTime);
                     FoodReadyToPickupTimes.Add(ts);
                     TimeSpan timeSpanAverage = GetTimeSpanAverage(FoodReadyToPickupTimes);
-                    Console.WriteLine($"{DateTime.Now.TimeOfDay} [TELEMETRY - FOOD] Average Order Ready to Pickup Time {timeSpanAverage.Milliseconds} ms");
+                    Console.WriteLine($"{DateTime.Now.TimeOfDay} [TELEMETRY - FOOD] Average Order Ready to Pickup Time {timeSpanAverage.TotalMilliseconds} ms");
                 }
             });
         }
@@ -51,7 +54,7 @@ namespace kitchencli.utils
                     TimeSpan ts = courierTelemetry.OrderPickupTime.Subtract(courierTelemetry.ArrivalTime);
                     CourierArrivalToPickupTime.Add(ts);
                     TimeSpan timeSpanAverage = GetTimeSpanAverage(CourierArrivalToPickupTime);
-                    Console.WriteLine($"{DateTime.Now.TimeOfDay} [TELEMETRY - COURIER] Average Arrival to Pickup Time {timeSpanAverage.Milliseconds} ms");
+                    Console.WriteLine($"{DateTime.Now.TimeOfDay} [TELEMETRY - COURIER] Average Arrival to Pickup Time {timeSpanAverage.TotalMilliseconds} ms");
                 }
             });
         }

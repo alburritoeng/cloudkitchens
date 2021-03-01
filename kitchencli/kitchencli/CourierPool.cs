@@ -48,14 +48,18 @@ namespace kitchencli
 
         public ICourier GetCourier()
         {
+            ICourier courier;
             // attempt to give from pool
             // if pool empty, create new one
-            if (!_courierPoolSet.IsEmpty && (_courierPoolSet.TryDequeue(out ICourier courier)))
+            if (!_courierPoolSet.IsEmpty && (_courierPoolSet.TryDequeue(out courier)))
             {
+                Console.WriteLine($"{DateTime.Now.TimeOfDay} [CourierPool] Courier {courier.CourierUniqueId} dispatched");
                 return courier;
             }
             
-            return GetRandomCourier();
+            courier = GetRandomCourier();
+            Console.WriteLine($"{DateTime.Now.TimeOfDay} [CourierPool] Courier {courier.CourierUniqueId} dispatched");
+            return courier;
         }
 
         public void ReturnCourier(ICourier courier)

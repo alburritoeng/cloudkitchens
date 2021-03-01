@@ -82,6 +82,8 @@ namespace kitchencli
                 int waitTimeMs = 100;
                 if (order != null)
                 {
+                    
+                    order.OrderReadyNotification += OrderReadyNotification;
                     order.OrderReadyNotification += _foodMatcher.AddToOrderReadyQueue;
                     waitTimeMs = order.prepTimeSeconds * 1000;
                     order.StartOrder();
@@ -104,7 +106,13 @@ namespace kitchencli
                 }
             } while (true);
         }
-        
+
+        private void OrderReadyNotification(Order order)
+        {
+            Console.WriteLine($"{DateTime.Now.TimeOfDay} [KitchenModule] Order {order.id} ready, sending to Matcher");
+            order.OrderReadyNotification -= this.OrderReadyNotification;
+        }
+
         public void Stop()
         {
             cts.Cancel();

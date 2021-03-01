@@ -73,7 +73,7 @@ namespace kitchencli
 
                 if (order != null)
                 {
-                    Console.WriteLine($"{DateTime.Now.TimeOfDay} [OrderReceiverModule] Sending order {order.id}-{order.name} to OrderMaker");
+                    Console.WriteLine($"{DateTime.Now.TimeOfDay} [OrderReceiverModule] Sending order {order.id}-{order.name} to OrderMaker, ETA {order.prepTimeSeconds}");
                     _kitchen.PrepareOrder(order);
                 }
 
@@ -131,7 +131,7 @@ namespace kitchencli
                         }
 
                         Console.WriteLine(
-                            $"{DateTime.Now.TimeOfDay} [OrderReceiverModule] Courier from {courier.CourierType()} {courier.CourierUniqueId} on the way for order {courier.CurrentOrder?.id}, ETA {courier.DurationEstimateInSeconds()}");
+                            $"{DateTime.Now.TimeOfDay} [OrderReceiverModule] Dispatching Courier {courier.CourierUniqueId} on the way for order {courier.CurrentOrder?.id}, ETA {courier.DurationEstimateInSeconds()}");
                         courier.NotifyArrivedForOrder += _kitchen.CourierHasArrived;
                         courier.LeaveForFood();
                     }
