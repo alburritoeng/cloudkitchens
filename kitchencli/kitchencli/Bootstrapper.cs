@@ -37,6 +37,8 @@ namespace kitchencli
         private int _totalOrders;
         private object _lock = new object();
         private ManualResetEvent _evt;
+        
+        private const int ExitDelayMs = 250;
         public Bootstrapper(ManualResetEvent evt)
         {
             _evt = evt;
@@ -112,7 +114,8 @@ namespace kitchencli
                 return;
             }
             
-            await Task.Delay(1000);
+            // waiting some time to give things time a chance to print to the console screen. 
+            await Task.Delay(ExitDelayMs);
             Console.WriteLine($"All ordered delivered!");
             Stop();
         }

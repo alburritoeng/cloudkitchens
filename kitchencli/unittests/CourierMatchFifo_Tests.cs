@@ -39,7 +39,7 @@ namespace unittests
             Order order = new Order();
             ICourierOrderMatcher fifo = new CourierOrderFifo(courierPool.Object, telemetry.Object);
 
-            ICourier courier = new DoorDashCourier();
+            ICourier courier = new Courier();
             courier.CurrentOrder = new Order();
             Assert.AreNotEqual(order.id, courier.CurrentOrder.id);
 
@@ -60,7 +60,7 @@ namespace unittests
             Order order = new Order();
             ICourierOrderMatcher fifo = new CourierOrderFifo(courierPool.Object, telemetry.Object);
 
-            ICourier courier = new DoorDashCourier();
+            ICourier courier = new Courier();
             courier.CurrentOrder = new Order();
             Assert.AreNotEqual(order.id, courier.CurrentOrder.id);
 
@@ -85,7 +85,7 @@ namespace unittests
             Order order = new Order();
             ICourierOrderMatcher fifo = new CourierOrderFifo(courierPool.Object, telemetry.Object);
 
-            ICourier courier = new DoorDashCourier();
+            ICourier courier = new Courier();
             courier.CurrentOrder = new Order();
             Assert.AreNotEqual(order.id, courier.CurrentOrder.id);
 
@@ -105,7 +105,7 @@ namespace unittests
 
             ICourierOrderMatcher fifo = new CourierOrderFifo(courierPool.Object, telemetry.Object);
 
-            ICourier courier = new DoorDashCourier();
+            ICourier courier = new Courier();
             
             fifo.CourierArrived(courier);
             
@@ -122,7 +122,7 @@ namespace unittests
             Order order = new Order();
             ICourierOrderMatcher fifo = new CourierOrderFifo(courierPool.Object, telemetry.Object);
 
-            ICourier courier = new DoorDashCourier();
+            ICourier courier = new Courier();
             courier.CurrentOrder = new Order();
             Assert.AreNotEqual(order.id, courier.CurrentOrder.id);
 

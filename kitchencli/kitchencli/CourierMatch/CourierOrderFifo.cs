@@ -80,7 +80,7 @@ namespace kitchencli.CourierMatch
             ((IOrderTelemetry) order).OrderPickUpTime = now;
             _telemetry.CalculateAverageFoodWaitTime(order);
 
-            ((ICourierTelemetry) courier).OrderPickupTime = now;
+            courier.OrderPickupTime = now;
             _telemetry.CalculateAverageCourierWaitTime(courier);
             
             Console.WriteLine($"{DateTime.Now.TimeOfDay} [CourierOrderFifo] Courier {courier.CourierUniqueId} matched with order {courier.CurrentOrder.id}");

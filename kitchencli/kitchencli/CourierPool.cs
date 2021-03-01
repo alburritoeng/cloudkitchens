@@ -6,6 +6,17 @@ using System.Collections.Concurrent;
 
 namespace kitchencli
 {
+    /// <summary>
+    /// This class is intended to server as a pool of Couriers that are created up front during initialization time.
+    /// The goal is to lessen the burden of creating new couriers during execution of the routine.
+    ///
+    /// There are 3 concrete types of couriers created, DoorDash, GrubHub, and UberEats. The goal is to randomly
+    /// generate 15 couriers, consisting of hopefully a random amount of each type of courier. The number 15 of
+    /// maxCouriers was selected as I ran this routine over and over with the input file of 132 orders. I found that
+    /// I never depleted the number of couriers to zero. I some times got to a value of 1 available courier in the
+    /// pool. I also considered that perhaps the team testing this code would probably use a file of 250 or 500 or 1000
+    /// orders, so I allowed the ability to generate new Couriers on the fly. 
+    /// </summary>
     internal class CourierPool : IStartStoppableModule, ICourierPool
     {
         private int maxCouriers = 15;
@@ -23,16 +34,8 @@ namespace kitchencli
 
         private ICourier GetRandomCourier()
         {
-            int type = random.Next(1, 4);
-            switch (type)
-            {
-                case 1:
-                    return new UberEatsCourier();
-                case 2:
-                    return new DoorDashCourier();
-                default:
-                    return new GrubHubCourier();
-            }
+            int type = random.Next(0, 3); 
+            return new Courier(type);            
         }
         
         private Random random;
@@ -47,7 +50,7 @@ namespace kitchencli
         {
             // attempt to give from pool
             // if pool empty, create new one
-            if (!_courierPoolSet.IsEmpty && (_courierPoolSet.TryDequeue(out var courier)))
+            if (!_courierPoolSet.IsEmpty && (_courierPoolSet.TryDequeue(out ICourier courier)))
             {
                 return courier;
             }
@@ -68,7 +71,9 @@ namespace kitchencli
 
         public void Stop()
         {
-            // I know, GCC, but trying to unpin these objects, to be a good little dev
+            // I wanted to unpin these objects from the GCC because pinning prevents the objects
+            // to be moved by the garbage collector. I realize we are stopping, but we can optimize this
+            // application to be stoppable, but not exit. In that case, we'd want to have our memory released. 
             bool res = false;
             do
             {

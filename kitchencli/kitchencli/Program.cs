@@ -28,7 +28,7 @@ namespace kitchencli
                 return;
             }
 
-            foreach(var a in arguments)
+            foreach(KeyValuePair<string, string> a in arguments)
             {
                 Console.WriteLine($"{a}");
             }
@@ -41,6 +41,7 @@ namespace kitchencli
                 bootstrapper.Start();
             });
 
+            // wait for the stop event indefinitely
             evt.WaitOne();
             
             evt?.Dispose();

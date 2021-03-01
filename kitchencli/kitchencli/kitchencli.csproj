@@ -59,9 +59,6 @@
     <Compile Include="api\IStartStoppableModule.cs" />
     <Compile Include="ArgumentParser.cs" />
     <Compile Include="Couriers\Courier.cs" />
-    <Compile Include="Couriers\DoorDashCourier.cs" />
-    <Compile Include="Couriers\GrubHubCourier.cs" />
-    <Compile Include="Couriers\UberEatsCourier.cs" />
     <Compile Include="CreatedOrderConsumer.cs" />
     <Compile Include="CourierPool.cs" />
     <Compile Include="CourierMatch\CourierOrderFifo.cs" />

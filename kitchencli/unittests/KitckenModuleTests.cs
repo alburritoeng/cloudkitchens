@@ -33,7 +33,7 @@ namespace unittests.Properties
         {
             Mock<ICourierOrderMatcher> courierOrderMatcherMock = new Mock<ICourierOrderMatcher>();
             Order order = new Order();
-            order.prepTime = 1;
+            order.prepTimeSeconds = 1;
             
             IKitchen kitchen = new KitchenModule(courierOrderMatcherMock.Object);
             ((IStartStoppableModule)kitchen).Start();
@@ -50,9 +50,9 @@ namespace unittests.Properties
         public void CourierHasArrived_Test()
         {
             Mock<ICourierOrderMatcher> courierOrderMatcherMock = new Mock<ICourierOrderMatcher>();
-            ICourier courier = new DoorDashCourier();
+            ICourier courier = new Courier();
 
-            ((DoorDashCourier) courier)._durationEstimate = 1;
+            ((Courier) courier)._durationEstimate = 1;
 
             IKitchen kitchen = new KitchenModule(courierOrderMatcherMock.Object);
             ((IStartStoppableModule)kitchen).Start();
@@ -69,7 +69,7 @@ namespace unittests.Properties
         public void Kitchen_CancelledToken_Test()
         {
             Mock<ICourierOrderMatcher> courierOrderMatcherMock = new Mock<ICourierOrderMatcher>();
-            ICourier courier = new DoorDashCourier();
+            ICourier courier = new Courier();
 
             IKitchen kitchen = new KitchenModule(courierOrderMatcherMock.Object);
             

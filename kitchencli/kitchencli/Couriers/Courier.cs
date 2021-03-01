@@ -6,12 +6,21 @@ using System.Threading.Tasks;
 
 namespace kitchencli.Couriers
 {
-    abstract class Courier : ICourier
+    public class Courier : ICourier
     {
         internal int _durationEstimate;
-        //protected Order _currentOrder;
+        private int _courierType = -1;
+        
         public Courier()
         {
+            _durationEstimate = RandomDistributionGenerator.GetRandomDistribution();
+            CourierUniqueId = Guid.NewGuid();
+            _courierType = 0;// arbitrary decided to default to type 0 for couriers
+        }
+        
+        public Courier(int courierType) 
+        {
+            _courierType = courierType;
             _durationEstimate = RandomDistributionGenerator.GetRandomDistribution();
             CourierUniqueId = Guid.NewGuid();
         }
@@ -28,14 +37,22 @@ namespace kitchencli.Couriers
         
         public Action<ICourier> NotifyArrivedForOrder { get; set; }
 
-        public virtual string CourierType()
+        public string CourierType()
         {
-            throw new NotImplementedException();
+            switch (_courierType)
+            {
+                case 0:
+                    return "UberEats";
+                case 1:
+                    return "DoorDash";
+                default:
+                    return "GrubHub";
+            }
         }
 
         public virtual int CourierTypeInt()
         {
-            return 0;
+            return _courierType;
         }
 
         public virtual int DurationEstimateInSeconds()

@@ -24,6 +24,7 @@ namespace kitchencli
         private readonly object _ordersLock = new object();
         private readonly object _courierLock = new object();
         internal CancellationTokenSource cts;
+        private const int WaitBetweenQueueReadsMs = 100;
         private bool _disposed;
         public OrderReceiverModule(IKitchen kitchen, ICourierPool courierPool, ICourierOrderMatcher courierOrderMatcher)
         {
@@ -78,7 +79,7 @@ namespace kitchencli
 
                 try
                 {
-                    await Task.Delay(100, token);
+                    await Task.Delay(WaitBetweenQueueReadsMs, token);
                 }
                 catch (OperationCanceledException) when (token.IsCancellationRequested)
                 {
@@ -119,7 +120,7 @@ namespace kitchencli
 
                     if (courier != null)
                     {
-                        //ask the ICourierOrderMatcher for an order (if this is match, otherwise, we wont know what order to pick up)
+                        //ask the ICourierOrderMatcher for an order (if this is match, otherwise, we won't know what order to pick up)
                         if (_courierOrderMatcher.GetMatchType() == MatchType.Match)
                         {
                             courier.CurrentOrder = order;
@@ -138,7 +139,7 @@ namespace kitchencli
 
                 try
                 {
-                    await Task.Delay(100, token);
+                    await Task.Delay(WaitBetweenQueueReadsMs, token);
                 }
                 catch (OperationCanceledException) when (token.IsCancellationRequested)
                 {

@@ -33,7 +33,7 @@ namespace unittests
             Order order = new Order();
             ICourierOrderMatcher match = new CourierOrderMatch(courierPool.Object, telemetry.Object);
 
-            ICourier courier = new DoorDashCourier();
+            ICourier courier = new Courier();
             courier.CurrentOrder = new Order();
             Assert.AreNotEqual(order.id, courier.CurrentOrder.id);
 
@@ -70,7 +70,7 @@ namespace unittests
             Order order = new Order();
             ICourierOrderMatcher match = new CourierOrderMatch(courierPool.Object, telemetry.Object);
 
-            ICourier courier = new DoorDashCourier();
+            ICourier courier = new Courier();
             courier.CurrentOrder = order;
             Assert.AreEqual(order.id, courier.CurrentOrder.id);
 
@@ -85,18 +85,23 @@ namespace unittests
         }
         
         [Test]
-        public void CourierArrived_ValidCourier_NoOrderReady_Test()
+        public void CourierArrived_NotOrderSetForCourier_MatchExpected_SendCourierAway_Test()
         {
             Mock<ICourierPool> courierPool = new Mock<ICourierPool>();
             Mock<ICourierOrderTelemetry> telemetry = new Mock<ICourierOrderTelemetry>();
 
             ICourierOrderMatcher match = new CourierOrderMatch(courierPool.Object, telemetry.Object);
 
-            ICourier courier = new DoorDashCourier();
+            ICourier courier = new Courier();
+            int currentCourierQueueCount = ((CourierOrderMatch) match).GetMatchSetCount();
             
-            match.CourierArrived(courier);
+            Assert.DoesNotThrow(()=>
+            {
+                match.CourierArrived(courier);
+            });
             
-            //Assert.True(((CourierOrderMatch) match)._idleCouriers.Count == 1);
+            // we do not expect to have added anything to the internal queue, not an order nor a courier
+            Assert.AreEqual(currentCourierQueueCount, ((CourierOrderMatch) match).GetMatchSetCount());
         }
 
         [Test]
@@ -108,15 +113,15 @@ namespace unittests
             Order order = new Order();
             ICourierOrderMatcher match = new CourierOrderMatch(courierPool.Object, telemetry.Object);
 
-            ICourier courier = new DoorDashCourier();
+            ICourier courier = new Courier();
             courier.CurrentOrder = new Order();
             Assert.AreNotEqual(order.id, courier.CurrentOrder.id);
 
             match.AddToOrderReadyQueue(order);
             match.CourierArrived(courier);
-            match.CourierArrived(new GrubHubCourier(){CurrentOrder = new Order()});
-            match.CourierArrived(new DoorDashCourier(){CurrentOrder = new Order()});
-            match.CourierArrived(new UberEatsCourier(){CurrentOrder = new Order()});
+            match.CourierArrived(new Courier(){CurrentOrder = new Order()});
+            match.CourierArrived(new Courier(){CurrentOrder = new Order()});
+            match.CourierArrived(new Courier(){CurrentOrder = new Order()});
             
             //order should just sit there. 
             Assert.True(((CourierOrderMatch) match)._matchingSet.ContainsKey(Guid.Parse(order.id)));

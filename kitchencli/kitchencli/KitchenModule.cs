@@ -21,11 +21,14 @@ namespace kitchencli
         private readonly object _lock = new object();
         private Queue<Order> _ordersQueue;
         private bool _disposed;
+        private IList<string> _chefs;
         public KitchenModule(ICourierOrderMatcher foodMatcher)
         {
             _foodMatcher = foodMatcher;
             _ordersQueue = new Queue<Order>();
             cts = new CancellationTokenSource();
+            // I felt this is how many chefs was a realistic thing to have in a kitchen ?
+            _chefs = new List<string>( ) {"Gordon Ramsay", "Wolfgang Puck", "Guy Fieri", "Rachael Ray", "Aaron Franklin", "Roy Choi" };
         }
 
         public void PrepareOrder(Order order)
@@ -49,42 +52,13 @@ namespace kitchencli
 
         public void Start()
         {
-            // I felt this is how many chefs was a realistic thing to have in a kitchen ?
-            Task.Run(() =>
+            foreach(string chef in _chefs)
             {
-                ChefsClockIn("Gordon Ramsay", cts.Token);
-            });
-            
-            Task.Run(() =>
-            {
-                ChefsClockIn("Wolfgang Puck",cts.Token);
-            });
-            
-            Task.Run(() =>
-            {
-                ChefsClockIn("Guy Fieri",cts.Token);
-            });
-            
-            Task.Run(() =>
-            {
-                ChefsClockIn("Rachael Ray",cts.Token);
-            });
-            
-            Task.Run(() =>
-            {
-                ChefsClockIn("Bobby Flay",cts.Token);
-            });
-            
-            Task.Run(() =>
-            {
-                ChefsClockIn("Happy Gilmore",cts.Token);
-            });
-            
-            Task.Run(() =>
-            {
-                ChefsClockIn("Billy Madison",cts.Token);
-            });
-            
+                Task.Run(() =>
+                {
+                    ChefsClockIn(chef,cts.Token);
+                });
+            }
         }
 
         private async void ChefsClockIn(string chefName, CancellationToken token)
@@ -105,23 +79,18 @@ namespace kitchencli
                         order = _ordersQueue.Dequeue();
                     }
                 }
-
+                int waitTimeMs = 100;
                 if (order != null)
                 {
-                    //PrepareOrder(order);
                     order.OrderReadyNotification += _foodMatcher.AddToOrderReadyQueue;
+                    waitTimeMs = order.prepTimeSeconds * 1000;
                     order.StartOrder();
-                    Console.WriteLine($"{DateTime.Now.TimeOfDay} [KitchenModule] {chefName} is starting Order {order.id}-{order.name} ETA {order.prepTime}");
+                    Console.WriteLine($"{DateTime.Now.TimeOfDay} [KitchenModule] {chefName} is starting Order {order.id}-{order.name} ETA {order.prepTimeSeconds}");
                 }
 
-                int waitTime = 100;
-                if (order != null)
-                {
-                    waitTime = order.prepTime * 1000;
-                }
                 try
                 {
-                    await Task.Delay(waitTime, token); // chef-working on an order, should be ready to pick up another from the queue when prepTime is up
+                    await Task.Delay(waitTimeMs, token); // chef-working on an order, should be ready to pick up another from the queue when prepTimeSeconds is up
                 }
                 catch (OperationCanceledException) when (token.IsCancellationRequested)
                 {
@@ -133,8 +102,6 @@ namespace kitchencli
                     Console.WriteLine(e);
                     throw;
                 }
-                
-                
             } while (true);
         }
         

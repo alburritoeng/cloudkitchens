@@ -22,7 +22,7 @@ namespace kitchencli.CourierMatch
             _telemetry = courierOrderTelemetry;
             _matchingSet = new Dictionary<Guid, Tuple<Order, ICourier>>();
         }
-
+      
         private bool Match(ICourier courier)
         {
             lock (_lock)
@@ -41,13 +41,13 @@ namespace kitchencli.CourierMatch
 
         private bool Match(Order order)
         {
+            if (!Guid.TryParse(order.id, out Guid orderGuid))
+            {
+                return false;
+            }
+            
             lock (_lock)
             {
-                Guid orderGuid;
-                if (!Guid.TryParse(order.id, out orderGuid))
-                {
-                    return false;
-                }
                 if (_matchingSet.ContainsKey(orderGuid))
                 {
                     PickupOrder(order,_matchingSet[orderGuid].Item2);
@@ -57,7 +57,6 @@ namespace kitchencli.CourierMatch
 
                 _matchingSet.Add(orderGuid, new Tuple<Order, ICourier>(order, null));
                 return false;
-
             }
         }
 
@@ -94,7 +93,7 @@ namespace kitchencli.CourierMatch
             
             ((IOrderTelemetry)order).OrderReadyTime = DateTime.Now;
             
-            var res = Match(order);
+            bool res = Match(order);
             if (res == false)
             {
                 Console.WriteLine($"{DateTime.Now.TimeOfDay} [CourierOrderMach] Courier has not arrived for order {order.id}");
@@ -108,11 +107,17 @@ namespace kitchencli.CourierMatch
                 return;
             }
 
+            if (courier.CurrentOrder == null)
+            {
+                Console.WriteLine($"{DateTime.Now.TimeOfDay} [CourierOrderMatch] ERROR Courier {courier.CourierUniqueId} should have valid order, send courier away!");
+                return;
+            }
+            
             if (Guid.TryParse(courier.CurrentOrder.id, out Guid guid))
             {
                 if (guid == Guid.Empty)
                 {
-                    Console.WriteLine($"{DateTime.Now.TimeOfDay} [CourierOrderMatch] ERROR Courier {courier.CourierUniqueId} should have a valid order!");
+                    Console.WriteLine($"{DateTime.Now.TimeOfDay} [CourierOrderMatch] ERROR Courier {courier.CourierUniqueId} should have a valid order, send courier away!");
                     return;
                 }
             }
@@ -120,7 +125,7 @@ namespace kitchencli.CourierMatch
             Console.WriteLine($"{DateTime.Now.TimeOfDay} [CourierOrderMatch] Courier {courier.CourierUniqueId} has arrived for order");
             courier.ArrivalTime = DateTime.Now;
             
-            var res = Match(courier);
+            bool res = Match(courier);
             if (res == false)
             {
                 Console.WriteLine($"{DateTime.Now.TimeOfDay} [CourierOrderMatch] Order {courier.OrderId()} not ready for Courier {courier.CourierUniqueId}");
@@ -130,6 +135,21 @@ namespace kitchencli.CourierMatch
         public MatchType GetMatchType()
         {
             return MatchType.Match;
+        }
+
+        /// <summary>
+        /// for unit testing purposes, properly lock our data structure so we can retrieve count
+        /// </summary>
+        /// <returns></returns>
+        internal int GetMatchSetCount()
+        {
+            int count = 0;
+            lock (_lock)
+            {
+                count = _matchingSet.Count;
+            }
+
+            return count;
         }
     }
 }

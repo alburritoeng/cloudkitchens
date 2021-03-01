@@ -36,8 +36,8 @@ namespace kitchencli.utils
                 {
                     TimeSpan ts = orderTelemetry.OrderPickUpTime.Subtract(orderTelemetry.OrderReadyTime);
                     FoodReadyToPickupTimes.Add(ts);
-                    var t = GetTimeSpanAverage(FoodReadyToPickupTimes);
-                    Console.WriteLine($"{DateTime.Now.TimeOfDay} [TELEMETRY - FOOD] Average Order Ready to Pickup Time {t.Milliseconds} ms");
+                    TimeSpan timeSpanAverage = GetTimeSpanAverage(FoodReadyToPickupTimes);
+                    Console.WriteLine($"{DateTime.Now.TimeOfDay} [TELEMETRY - FOOD] Average Order Ready to Pickup Time {timeSpanAverage.Milliseconds} ms");
                 }
             });
         }
@@ -50,8 +50,8 @@ namespace kitchencli.utils
                 {
                     TimeSpan ts = courierTelemetry.OrderPickupTime.Subtract(courierTelemetry.ArrivalTime);
                     CourierArrivalToPickupTime.Add(ts);
-                    var t = GetTimeSpanAverage(CourierArrivalToPickupTime);
-                    Console.WriteLine($"{DateTime.Now.TimeOfDay} [TELEMETRY - COURIER] Average Arrival to Pickup Time {t.Milliseconds} ms");
+                    TimeSpan timeSpanAverage = GetTimeSpanAverage(CourierArrivalToPickupTime);
+                    Console.WriteLine($"{DateTime.Now.TimeOfDay} [TELEMETRY - COURIER] Average Arrival to Pickup Time {timeSpanAverage.Milliseconds} ms");
                 }
             });
         }

@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using kitchencli.api;
+using Newtonsoft.Json;
 
 namespace kitchencli.utils
 {
@@ -17,7 +18,7 @@ namespace kitchencli.utils
         public Order()
         {
             id = Guid.NewGuid().ToString();
-            prepTime = -1;
+            prepTimeSeconds = -1;
             name = string.Empty;
         }
         /// <summary>
@@ -33,7 +34,8 @@ namespace kitchencli.utils
         /// <summary>
         /// The time for PrepTime (in seconds) for Order
         /// </summary>
-        public int prepTime { get; set; }
+        [JsonProperty("prepTime")]
+        public int prepTimeSeconds { get; set; }
 
         public void StartOrder()
         {
@@ -41,7 +43,7 @@ namespace kitchencli.utils
             {
                 using (ManualResetEvent evt = new ManualResetEvent(false))
                 {
-                    evt.WaitOne(prepTime * 1000);
+                    evt.WaitOne(prepTimeSeconds * 1000);
 
                     if (OrderReadyNotification != null)
                     {

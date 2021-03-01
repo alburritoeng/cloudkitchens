@@ -47,7 +47,7 @@ namespace kitchencli
                         case "F":
                             if(!AddArgumentToList(args, flag, arguments, i, (argmentReceived) =>
                             {
-                                var res= File.Exists(argmentReceived);
+                                bool res= File.Exists(argmentReceived);
                                 if(!res)
                                 {
                                     Console.WriteLine($"File at path '{argmentReceived}' does not exist.");

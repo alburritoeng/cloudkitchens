@@ -14,6 +14,7 @@ namespace kitchencli
         private CancellationTokenSource cts;
         private IOrderReceiver _orderReceiver;
         private bool _disposed;
+        private const int OneThousandMs = 1000;
         public CreatedOrderConsumer(IOrderReceiver orderReceiver)
         {
             _orderReceiver = orderReceiver;
@@ -23,14 +24,19 @@ namespace kitchencli
         
         public void AddOrderToQueue(Order order) 
         {
-            // could use thread safe queue (out-of-the-box), but 
-            // going to use a lock instead :)
+            // using lock vs ConcurrentQueue because processing time of of picking an order is
+            // very small, so we do not anticipate a slow performance here from locking to add and locking to remove
             lock(_lock)
             {
                 _ordersQueue.Enqueue(order);
             }
         }
 
+        /// <summary>
+        /// Sending a null order means we do not have any items in the queue
+        /// Caller of this method should properly handle receiving a null order
+        /// </summary>
+        /// <returns></returns>
         private Order PickOrder()
         {
             lock(_lock)
@@ -70,7 +76,7 @@ namespace kitchencli
                 SendSingleOrder();                
                 try
                 {
-                    await Task.Delay(1000, token);
+                    await Task.Delay(2 * OneThousandMs, token);
                 }
                 catch (OperationCanceledException) when (token.IsCancellationRequested)
                 {
@@ -88,7 +94,9 @@ namespace kitchencli
 
         private void SendSingleOrder()
         {
-            var order = PickOrder();
+            // properly handle the use case of receiving a null order from the picker
+            // we do not want to dispatch couriers or generate invalid orders
+            Order order = PickOrder();
             if (order != null)
             {
                 _orderReceiver.SendOrderToOrderMaker(order);
