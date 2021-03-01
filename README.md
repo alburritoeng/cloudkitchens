@@ -1,6 +1,3 @@
-# cloudkitchens
-cloud kitchens interview homework
-
 My solution to this assignment is in C#. 
 The IDE I used is Jetbrains Rider 2020.3.3, but I also verified this ran against Visual Studio 2019.
 The application is using .NET472 framework. 
@@ -90,11 +87,11 @@ public interface ICourier: ICourierTelemetry
 ```
 
 ### ICourierOrderMatcher interface
-This interface recieves an order ready for pick up and a courier who has arrived for an order
+This interface recieves an order ready for pick up and a courier who has arrived for an order.
 The implementation can use whatever matching scheme desired, FIFO or Match for example. 
 ```
 /// <summary>
-/// This interface receives Orders and handles logic for 
+/// This interface receives Orders and handles logic for
 /// Couriers picking up orders
 /// 
 /// Concrete implementations of this interface can implement Match or First-in-First-Out logic for 
@@ -320,9 +317,14 @@ public interface IStartStoppableModule
 }
 ```
 # Objects in the System & Design
+## Bootstrapper
+I created a bootstrapper that puts all the APIs together with concerete implementations. It manages the life-cycle of the objects, ie. Start/Stop and IDisposable.
+I make sure to inject the right interface implementation, FIFO vs Match and handle synchronizing the starts of each object. 
+I also added a subscriber here to receive indication when the final order is received. I did that by counting the number of input orders
+and using a ongoing count of how many times the publisher is called. 
 
 ## Orders
-The way I designed Order objects was to make them self-expiring on their prep time
+The way I designed Order objects was to make them self-expiring on their prep time.
 I set their ManualResetEvent when the "chef" picked the order for Preparation. 
 At that point, the "chef" is making the order and the self-expiring event would call the delegate I set on
 the ICourierOrderMatcher object for matching "the pass" (I watch a lot of Hell's Kitchen :))
@@ -342,6 +344,13 @@ objects upfront and adding them to a pool. The ICourierPool is fascilitating cou
 found that 15-couriers was a good number for the file I was using (132 orders), but I did allow for additional Couriers
 to be instantiated if the pool was depleted. Perhaps goes against the Object Pool design pattern, but I liked this idea. 
 
+Update morning of 3/1: At first my implementation had concerte DoorDash, GrubHub, UberEats implementations of an abstract Courier class.
+But then I realized that except for the CourierType property, "DoorDash", "GrubHub", "UberEats", there was no internal courier-specifc
+logic. So I optimized them out, and updated the CourierPool to instead return a Courier object with a set type. 
+
+Another thing I considered was, should I use something other than "Random" object for generating my couriers. I feel that it was my
+idea to use concrete types of couriers, and there was no indication on the prompt, so I made it simple and went with random. I think 
+I could have use a scheduling algorithm, round robin, fifo, etc, but for now I feel this satisfies the requirement. 
 ## OOP & Design Patterns 
 ### SOLID 
 I really tried to stick to Single Responsibility, Open/Closed, Liskov, Interface seg & Dependency Inversion. 
@@ -380,3 +389,10 @@ I also use MOQ in my Unit Tests to help me control the dependencies and their st
 
 I tried to show that in my UnitTests. 
 
+# Possible Optimizations
+I feel I should have exposed the the following through the Cli:
+* max number of couriers value as an input value
+* max number of chefs
+I made some decisions of my own there with setting the max number of couriers, or perhaps I didn't because my object pool does allow you to create dynamic couriers if the pool is depleted, however the chefs (or producers of Orders for Matching) could probably have been a property set by the Cli. 
+
+C# - I realize C# is not a real-time language. Possibly the GCC interferes here a bit with object management and the CPU cycles invovled with cleaning up managed memory. 
